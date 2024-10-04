@@ -51,6 +51,8 @@ python train_gazefollow_base.py --device {} --batch_size 48 --epochs 40 --no_ino
 ```
  python train_gazefollow_semisup.py --device {gpuid} --teacher_model diffusion --teacher_ckpt {weights for trained teacher model} --time_steps 500 --supervise_ratio {0.05/0.1/0.2} --no_inout --onlyin --labeled_batch_size 20 --batch_size 80 --scale_input --scale 2.0  --model baseline --denoise_steps 250 --inference_steps 2 
 ```
+We set the "denoise_steps" argument as 200 when training with 5% labels, and 250 for other ratios.
+
 You can use the same code to test the performance for other baseline teacher models by changing the "teacher_model" argument.
 
 ## Citation
