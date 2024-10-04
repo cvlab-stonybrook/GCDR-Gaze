@@ -24,7 +24,7 @@ from config import *
 
 
 class GazeFollow_weakly(Dataset):
-    def __init__(self, cfg, transform, test=False, ratio=0.5, use_sup_only=False, use_unsup_only=False, no_aug=False):
+    def __init__(self, cfg, transform, test=False, ratio=0.1, use_sup_only=False, use_unsup_only=False, no_aug=False):
         data_dir = cfg.gazefollow_base_dir
         self.data_dir = data_dir
         self.no_aug = no_aug
