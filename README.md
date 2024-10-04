@@ -2,7 +2,7 @@
 
 ## Overview
 This is the official implementation of our paper:
-**'Diffusion-Refined VQA Annotations for Semi-Supervised Gaze Following'**  [[paper]](https://arxiv.org/pdf/2406.02774)
+**'Diffusion-Refined VQA Annotations for Semi-Supervised Gaze Following'** published in ECCV 2024 [[paper]](https://arxiv.org/pdf/2406.02774)
 
 ![](Semi_Supervised_Gaze/misc/framework_full.jpg)
 
