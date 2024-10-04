@@ -1,4 +1,4 @@
-# GCDR
+# GCDR-Gaze
 
 ## Overview
 This is the official implementation of our paper:
