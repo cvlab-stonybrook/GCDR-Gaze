@@ -1,0 +1,33 @@
+
+
+
+MODEL:
+  node_dim: 1024
+  num_lstm_layers: 2
+  bidirectional: False  # for convLSTM
+  temporal_attention:
+    nhead: 8
+  DIFF_MODEL:
+    img_size: 64
+    time_steps: 500
+    noise_schedule: 'linear'
+    in_channels: 1
+    out_channels: 1
+    model_channels: 64
+    num_res_blocks: 2
+    channel_mult: [1,2,3,4]
+    attention_resolutions: [8,4]
+    num_heads: 4
+    inference_times: 10
+    clip_denoised: True
+
+
+  # for edge2node, GRU is used in the original paper
+DATA:
+  input_resolution:  224
+  output_resolution:  64
+  gradcam_outsize:  64
+  seq_len: 5
+  gazefollow_base_dir: "/nfs/bigrod/add_disk0/qiaomu/datasets/gaze/gazefollow"
+  vat_base_dir: "/data/add_disk0/qiaomu/datasets/gaze/videoattentiontarget"
+  ckpt_dir_videoatt: "/data/add_disk0/qiaomu/ckpts/videoatttarget"

@@ -1,0 +1,6 @@
+__pycache__
+Semi_Supervised_Gaze/logs
+Semi_Supervised_Gaze/utils/__pycache__
+Semi_Supervised_Gaze/utils/*.pyc
+Semi_Supervised_Gaze/lib/__pycache__
+Semi_Supervised_Gaze/lib/*.pyc
