@@ -266,7 +266,7 @@ class GF_Diffusion_Model_new(nn.Module):
 class GF_Diffusion_Model_temporal(nn.Module):
     def __init__(self, args):
         super(GF_Diffusion_Model_temporal, self).__init__()
-        self.feat_extractor = Gazefollow_Encoder(use_depth=args.use_depth)
+        self.feat_extractor = Gazefollow_Encoder()
         self.relu = nn.ReLU(inplace=True)
         args_diff = args.DIFF_MODEL
         self.diffusion_model = UNetModel(image_size=args_diff.img_size, in_channels=args_diff.in_channels, out_channels=args_diff.out_channels, 
@@ -321,8 +321,8 @@ class GF_Diffusion_Model_temporal(nn.Module):
     
     def forward_train(self, input, hidden_feat: tuple = None, batch_sizes: list = None):
         
-        images, head, face, depth_img, gt_hm = input
-        feature = self.feat_extractor([images, head, face, depth_img])
+        images, head, face, gt_hm = input
+        feature = self.feat_extractor([images, head, face])
         feature = self.compress_conv1(feature)
         feature = self.compress_bn1(feature)
         feature = self.relu(feature)
@@ -354,8 +354,8 @@ class GF_Diffusion_Model_temporal(nn.Module):
         return eps_est, epsilon, hx 
     
     def forward_inference(self, input, inference_steps, start_steps=-1, inter_sample=None, annt_gen=None, hidden_feat: tuple = None, batch_sizes: list = None):
-        images, head, face, depth_img = input
-        feature = self.feat_extractor([images, head, face, depth_img])
+        images, head, face = input
+        feature = self.feat_extractor([images, head, face])
         feature = self.compress_conv1(feature)
         feature = self.compress_bn1(feature)
         feature = self.relu(feature)
