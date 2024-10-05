@@ -253,65 +253,54 @@ if __name__ == "__main__":
             with torch.no_grad():
                 AUC = []; min_dist = []; avg_dist = []
                 all_batches = 0
-                for eval_iter in range(args.inference_times):
-                    for val_batch, (img, face, head_channel, gaze_heatmap, cont_gaze, imsize, head_coords, body_coords, gaze_coords, gradcam_resize, path) in enumerate(tqdm(val_loader)):
-                        start_idx, end_idx = end_idx, start_idx + img.size()[0]
-                        images, head, faces = img.cuda(), head_channel.cuda(), face.cuda()
-                        head_coords, gaze_coords = head_coords.float().cuda(), gaze_coords.float().cuda()
-                        gaze_heatmap = gaze_heatmap.cuda() 
-                        gaze_heatmap_pred = model([images, head, faces], args.inference_steps)
-                        gaze_heatmap_pred = gaze_heatmap_pred.squeeze(1)
-                        bs = img.size()[0]
-                        all_batches+=1
+                
+                for val_batch, (img, face, head_channel, gaze_heatmap, cont_gaze, imsize, head_coords, body_coords, gaze_coords, gradcam_resize, path) in enumerate(tqdm(val_loader)):
+                    start_idx, end_idx = end_idx, start_idx + img.size()[0]
+                    images, head, faces = img.cuda(), head_channel.cuda(), face.cuda()
+                    head_coords, gaze_coords = head_coords.float().cuda(), gaze_coords.float().cuda()
+                    gaze_heatmap = gaze_heatmap.cuda() 
+                    gaze_heatmap_pred = model([images, head, faces], args.inference_steps)
+                    gaze_heatmap_pred = gaze_heatmap_pred.squeeze(1)
+                    bs = img.size()[0]
+                    all_batches+=1
+                    
+                    # un-scale the prediction
+                    #gaze_heatmap_pred = ((gaze_heatmap_pred + 1) / 2.).clamp(0.0, 1.0)
+                    l2_loss = mseloss_mean(gaze_heatmap_pred, gaze_heatmap)*args.loss_amp_factor
+                    gaze_inside = torch.ones(images.size()[0]).cuda()
+                    total_loss = l2_loss
+                    
+                    ep_val_l2_loss += l2_loss.item()
+                    ep_val_loss += total_loss.item()
+                    
+                    max_all, min_all = gaze_heatmap_pred.flatten(start_dim=1).max(dim=1)[0].unsqueeze(-1).unsqueeze(-1), gaze_heatmap_pred.flatten(start_dim=1).min(dim=1)[0].unsqueeze(-1).unsqueeze(-1)
+                    gaze_heatmap_pred = (gaze_heatmap_pred - min_all) / (max_all - min_all + eps)
+                    gaze_heatmap_pred = gaze_heatmap_pred.cpu().numpy()
+                    gaze_heatmap = gaze_heatmap.squeeze(1).cpu().numpy()
+                    
+                    for b_i in range(len(cont_gaze)):
+                        # remove padding and recover valid ground truth points
+                        valid_gaze = cont_gaze[b_i]
+                        valid_gaze = valid_gaze[valid_gaze != -1].view(-1,2)
+                        valid_gaze = valid_gaze.numpy()  
+                        # AUC: area under curve of ROC
+                        multi_hot = imutils.multi_hot_targets(cont_gaze[b_i], imsize[b_i])
+                        try:
+                            auc_score, avg_dist_this, min_dist_this = evaluation.get_all_metrics(gaze_heatmap_pred[b_i], multi_hot, valid_gaze, imsize[b_i][1], imsize[b_i][0], output_resolution=64)
+                        except Exception:
+                            print(traceback.format_exc())
+                            pdb.set_trace()
                         
-                        # un-scale the prediction
-                        #gaze_heatmap_pred = ((gaze_heatmap_pred + 1) / 2.).clamp(0.0, 1.0)
-                        l2_loss = mseloss_mean(gaze_heatmap_pred, gaze_heatmap)*args.loss_amp_factor
-                        gaze_inside = torch.ones(images.size()[0]).cuda()
-                        total_loss = l2_loss
-                        
-                        ep_val_l2_loss += l2_loss.item()
-                        ep_val_loss += total_loss.item()
-                        
-                        max_all, min_all = gaze_heatmap_pred.flatten(start_dim=1).max(dim=1)[0].unsqueeze(-1).unsqueeze(-1), gaze_heatmap_pred.flatten(start_dim=1).min(dim=1)[0].unsqueeze(-1).unsqueeze(-1)
-                        gaze_heatmap_pred = (gaze_heatmap_pred - min_all) / (max_all - min_all + eps)
-                        gaze_heatmap_pred = gaze_heatmap_pred.cpu().numpy()
-                        gaze_heatmap = gaze_heatmap.squeeze(1).cpu().numpy()
-                        
-                        for b_i in range(len(cont_gaze)):
-                            # remove padding and recover valid ground truth points
-                            valid_gaze = cont_gaze[b_i]
-                            valid_gaze = valid_gaze[valid_gaze != -1].view(-1,2)
-                            valid_gaze = valid_gaze.numpy()  
-                            # AUC: area under curve of ROC
-                            multi_hot = imutils.multi_hot_targets(cont_gaze[b_i], imsize[b_i])
-                            try:
-                                auc_score, avg_dist_this, min_dist_this = evaluation.get_all_metrics(gaze_heatmap_pred[b_i], multi_hot, valid_gaze, imsize[b_i][1], imsize[b_i][0], output_resolution=64)
-                            except Exception:
-                                print(traceback.format_exc())
-                                pdb.set_trace()
-                            
-                            AUC.append(auc_score)
-                            min_dist.append(min_dist_this)
-                            avg_dist.append(avg_dist_this)
-                        
-                    print("Iter{}:\tAUC:{:.4f}\tmin dist:{:.4f}\tavg dist:{:.4f}\t".format(
-                        eval_iter,
-                        torch.mean(torch.tensor(AUC)),
-                        torch.mean(torch.tensor(min_dist)),
-                        torch.mean(torch.tensor(avg_dist)),
-                        ))
+                        AUC.append(auc_score)
+                        min_dist.append(min_dist_this)
+                        avg_dist.append(avg_dist_this)
             
-                AUC_avg.append(torch.mean(torch.tensor(AUC)))
-                min_dist_avg.append(torch.mean(torch.tensor(min_dist)))
-                avg_dist_avg.append(torch.mean(torch.tensor(avg_dist)))
-            
-            logger.info("Epoch {} averaged evaluation:\tAUC:{:.4f}\tmin dist:{:.4f}\tavg dist:{:.4f}\t".format(
+            logger.info("Epoch {}:\tAvg dist:{:.4f}\tMin dist:{:.4f}\tAUC:{:.4f}\t".format(
                         ep,
-                        torch.mean(torch.tensor(AUC)),
-                        torch.mean(torch.tensor(min_dist)),
                         torch.mean(torch.tensor(avg_dist)),
-                        ))
+                        torch.mean(torch.tensor(min_dist)),
+                        torch.mean(torch.tensor(AUC))
+                    ))
             ep_val_loss, ep_val_l2_loss, ep_val_inout_loss = ep_val_loss/(all_batches+1), ep_val_l2_loss/(all_batches+1), ep_val_inout_loss/(all_batches+1)
             
             AUC_avg = torch.mean(torch.tensor(AUC_avg))

@@ -118,7 +118,7 @@ def train(args):
         logger.info(f"Epoch {ep}: learning rate: {optimizer.param_groups[0]['lr']}") 
         num_sup, num_all = 0,0
         
-        for batch, (img, face, head_channel, gaze_heatmap, gaze_inside, head_coords, body_coords, gaze_coords, gradcam_resize, hm_maxgradcam, sup, gradcam_valid, pred_inout, path) in enumerate(train_loader):
+        for batch, (img, face, head_channel, gaze_heatmap, gaze_inside, head_coords, body_coords, gaze_coords, gradcam_resize, hm_maxgradcam, sup, gradcam_valid, path) in enumerate(train_loader):
             
             model.train(True)
             images, head, faces = img.cuda(), head_channel.cuda(), face.cuda()
@@ -233,10 +233,10 @@ def train(args):
                         avg_distance = evaluation.L2_dist(mean_gt_gaze, norm_p)
                         avg_dist.append(avg_distance)
                 
-                logger.info("\tAUC:{:.4f}\tmin dist:{:.4f}\tavg dist:{:.4f}\t".format(
-                    torch.mean(torch.tensor(AUC)),
+                logger.info("\tAvg dist:{:.4f}\tMin dist:{:.4f}\tAUC:{:.4f}\t".format(
+                    torch.mean(torch.tensor(avg_dist)),
                     torch.mean(torch.tensor(min_dist)),
-                    torch.mean(torch.tensor(avg_dist))
+                    torch.mean(torch.tensor(AUC))
                     ))
                 
             writer.add_scalar('Validation AUC', torch.mean(torch.tensor(AUC)), global_step=ep)

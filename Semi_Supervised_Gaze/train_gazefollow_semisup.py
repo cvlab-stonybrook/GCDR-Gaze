@@ -320,10 +320,11 @@ def train(args):
                         avg_dist.append(avg_distance)
                 
                
-                logger.info("\tAUC:{:.4f}\tmin dist:{:.4f}\tavg dist:{:.4f}\t ".format(
-                    torch.mean(torch.tensor(AUC)),
+                logger.info("\t Avg dist:{:.4f}\tMin dist:{:.4f}\tAUC:{:.4f}\t".format(
+                    torch.mean(torch.tensor(avg_dist)),
                     torch.mean(torch.tensor(min_dist)),
-                    torch.mean(torch.tensor(avg_dist))))
+                    torch.mean(torch.tensor(AUC))
+                    ))
             writer.add_scalar('Validation/AUC', torch.mean(torch.tensor(AUC)), global_step=ep)
             writer.add_scalar('Validation/min dist', torch.mean(torch.tensor(min_dist)), global_step=ep)
             writer.add_scalar('Validation/avg dist', torch.mean(torch.tensor(avg_dist)), global_step=ep)
