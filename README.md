@@ -38,7 +38,7 @@ python train_diff_gazefollow.py --device {} --inference_steps 10 --time_steps 50
 ```
 The diffusion model can also be enhanced by training with unlabeled data using the Mean Teacher method (We trained for 40 epochs for 5% labels,  60 epochs for 10%, and 80 epochs for 20%):
 ```
-python train_diff_gazefollow_meanteacher.py  --device {} --consistency_type kl --remark diff_0.05_teachersample_inf10 --no_inout --supervise_ratio {} --ema-decay 0.99 --batch_size 40 --onlyin --labeled-batch-size 10 --lr 5e-5 --inference_steps 10 --time_steps 500 --batch_size 40 --scale_input --scale 2.0 --consistency 4000 --project_name diff_meanteacher_new --epochs {} --eval_every 2
+python train_diff_gazefollow_meanteacher.py  --device {} --consistency_type kl --no_inout --supervise_ratio {} --ema-decay 0.99 --batch_size 40 --onlyin --labeled-batch-size 10 --lr 5e-5 --inference_steps 10 --time_steps 500 --batch_size 40 --scale_input --scale 2.0 --consistency 4000 --epochs {} --eval_every 2
 ```
 
 We also provide the code for training baseline teacher models (VAT, VAT-GC):
