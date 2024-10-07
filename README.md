@@ -53,7 +53,10 @@ python train_gazefollow_base.py --device {} --batch_size 48 --epochs 40 --no_ino
 ```
 We set the "denoise_steps" argument as 200 when training with 5% labels, and 250 for other ratios.
 
-You can use the same code to test the performance for other baseline teacher models by changing the "teacher_model" argument.
+You can test the performance for other baseline teacher models by changing the "teacher_model" argument.
+
+We have also provided exemplary teacher model weights trained with 10% labels [here](https://drive.google.com/drive/folders/1bXM6nEH6y6k5cKdUGUcMxTwqiln9r9Ig?usp=drive_link).
+
 
 ## Citation
 If you find our method/code useful, please cite as follow:

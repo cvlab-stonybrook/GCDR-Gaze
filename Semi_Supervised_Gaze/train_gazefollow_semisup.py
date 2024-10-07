@@ -84,7 +84,7 @@ def train(args):
                                                shuffle=False,
                                                num_workers=12)
     if args.resume==-1:
-        setting_name = f"{args.remark}model{args.model}_teacher{args.semi_model}_infsteps{args.inference_steps}_denoisesteps{args.denoise_steps}_ratio{args.supervise_ratio}_lr{args.lr}bs{args.batch_size}_onlyin{args.onlyin}_labelbs{args.labeled_batch_size}_ampfactor{args.loss_amp_factor}_lambda{args.lambda_}_weightdecay{args.weight_decay}_optim{args.optim}" 
+        setting_name = f"{args.remark}model{args.model}_teacher{args.teacher_model}_infsteps{args.inference_steps}_denoisesteps{args.denoise_steps}_ratio{args.supervise_ratio}_lr{args.lr}bs{args.batch_size}_onlyin{args.onlyin}_labelbs{args.labeled_batch_size}_ampfactor{args.loss_amp_factor}_lambda{args.lambda_}_weightdecay{args.weight_decay}_optim{args.optim}" 
         if args.debug:
             setting_name += '_debug'
     else:
@@ -111,15 +111,15 @@ def train(args):
         
     eps = 1e-11   
     model.cuda()
-    if args.semi_model=='diffusion':
+    if args.teacher_model=='diffusion':
         pseudo_model = GF_Diffusion_Model_new(args.MODEL)
-    elif args.semi_model=='baseline_gradcam':
+    elif args.teacher_model=='baseline_gradcam':
         pseudo_model = ModelSpatial_GradCAM(args.MODEL)
-    elif args.semi_model=='baseline':
+    elif args.teacher_model=='baseline':
         pseudo_model = ModelSpatial(args.MODEL)
         
     myutils.load_pretrained_weights(pseudo_model, state_dict = None, weight_path=args.teacher_ckpt) 
-    print("successfully load {} for {} pseudo model!".format(args.teacher_ckpt, args.semi_model))
+    print("successfully load {} for {} teacher model!".format(args.teacher_ckpt, args.teacher_model))
     pseudo_model.cuda()
     pseudo_model.eval()
     if len(args.init_weights)>0:
@@ -181,13 +181,13 @@ def train(args):
                     t_exp = torch.tensor([sample_steps]).long().to(images.device)
                     hm_all = []
                      
-                    if args.semi_model=='baseline_gradcam':
+                    if args.teacher_model=='baseline_gradcam':
                         denoised_hm, _ = pseudo_model([images, head, faces, gradcam_resize])  # add gradcam to baseline model for prediction
                         
-                    elif args.semi_model=='baseline':
+                    elif args.teacher_model=='baseline':
                         denoised_hm, _ = pseudo_model([images, head, faces])  # baseline prediction, just use same name for convenience
                         
-                    elif args.semi_model=='diffusion':
+                    elif args.teacher_model=='diffusion':
                         for i in range(args.inference_times):
                             if not args.sample_from_noise:
                                 gradcam_noised, epsilon = pseudo_model.diffusion.q_sample(gradcam_resize, t_exp)                    
@@ -205,7 +205,7 @@ def train(args):
                     gaze_heatmap[replace_idx] = denoised_hm
                     
                     # l2 loss computed only for inside case?
-                    if args.semi_model!='baseline':
+                    if args.teacher_model!='baseline':
                         replace_idx = torch.logical_and(replace_idx, gradcam_valid)
                     
             else:
@@ -320,7 +320,7 @@ def train(args):
                         avg_dist.append(avg_distance)
                 
                
-                logger.info("\t Avg dist:{:.4f}\tMin dist:{:.4f}\tAUC:{:.4f}\t".format(
+                logger.info("\tAvg dist:{:.4f}\tMin dist:{:.4f}\tAUC:{:.4f}\t".format(
                     torch.mean(torch.tensor(avg_dist)),
                     torch.mean(torch.tensor(min_dist)),
                     torch.mean(torch.tensor(AUC))
@@ -373,7 +373,7 @@ if __name__=='__main__':
     parser.add_argument("--save_every", type=int, default=1, help="save every ___ epochs")
     parser.add_argument("--resume", type=int, default=-1, help="which epoch to resume from")
     parser.add_argument('--remark', type=str, default='')
-    parser.add_argument('--semi_model', default='diffusion')
+    parser.add_argument('--teacher_model', default='diffusion')
     parser.add_argument('--pred_noise', action='store_true')
     parser.add_argument('--scale', type=float, default=2.0)
     parser.add_argument('--scale_input', action='store_true')
