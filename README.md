@@ -32,7 +32,7 @@ We also provide the pre-computed Grad-CAM heatmaps [here](https://drive.google.c
 We train a diffusion model (conditioned with features from scene and head images) to refine the initial noisy Grad-CAM heatmaps into high-quality pseudo annotations for the gaze target.
 
 ### Training teacher models on supervised data
-Train diffusion model on labeled data (We trained 150 epochs with 5% and 10% labels, and 100 epochs for 20% labels):
+Train diffusion model on labeled data (We trained 150 epochs with 5% and 10% labels, and 100 epochs for 20% labels), the feature extraction module of diffusion model is initialized same as VAT ([link](https://drive.google.com/file/d/1jhfF5VRFwahC0AqeKLTwtpa6HVPeb1G_/view?usp=sharing)):
 ```
 python train_diff_gazefollow.py --device {} --inference_steps 10 --time_steps 500 --onlyin --lr 5e-5 --batch_size 48 --supervise_ratio {0.05/0.1/0.2} --scale_input --scale 2.0 --epochs {} --eval_every 2
 ```
